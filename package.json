@@ -1,0 +1,27 @@
+{
+  "name": "ceska-university-bot",
+  "version": "1.0.0",
+  "description": "Bot de universidad desplegado en Cloudflare Workers",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "format": "prettier --write \"**/*.{js,ts,json,md}\""
+  },
+  "keywords": [
+    "bot",
+    "university",
+    "cloudflare",
+    "workers"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0",
+    "prettier": "^3.0.0"
+  },
+  "dependencies": {
+    "itty-router": "^4.0.20"
+  }
+}
