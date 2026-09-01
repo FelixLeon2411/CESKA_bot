@@ -1,7 +1,3 @@
-import { Router } from 'itty-router';
-
-const router = Router();
-
 // Almacenamiento en memoria (para desarrollo)
 let botData = {
   users: new Map(),
@@ -9,59 +5,41 @@ let botData = {
   messages: []
 };
 
-// Ruta principal - Webhook del bot
-router.post('/', async (request, env) => {
+// Handler principal del bot para Express
+export async function botHandler(req) {
   try {
-    const body = await request.json();
+    const body = req.body;
     
     // Verificar si es un webhook de Telegram u otra plataforma
     if (body.message) {
-      return await handleMessage(body.message, env);
+      return await handleMessage(body.message);
     }
     
     // Respuesta para otros tipos de webhooks
-    return new Response('OK', { status: 200 });
+    return { status: 200, data: { success: true } };
   } catch (error) {
     console.error('Error processing webhook:', error);
-    return new Response('Error', { status: 500 });
+    return { status: 500, data: { error: 'Internal server error' } };
   }
-});
-
-// Ruta de health check
-router.get('/health', () => {
-  return new Response(JSON.stringify({ status: 'healthy', timestamp: Date.now() }), {
-    headers: { 'Content-Type': 'application/json' }
-  });
-});
-
-// Ruta de información del bot
-router.get('/', () => {
-  return new Response(JSON.stringify({
-    name: 'Ceska University Bot',
-    version: '1.0.0',
-    status: 'running'
-  }), {
-    headers: { 'Content-Type': 'application/json' }
-  });
-});
+}
 
 // Manejador de mensajes
-async function handleMessage(message, env) {
+async function handleMessage(message) {
   const chatId = message.chat.id;
   const text = message.text || '';
   const username = message.from.username || 'usuario';
   
   // Comandos del bot
   if (text.startsWith('/')) {
-    return await handleCommand(text, chatId, username, env);
+    return await handleCommand(text, chatId, username);
   }
   
   // Respuesta a mensajes regulares
-  return await sendResponse(chatId, `Hola ${username}! Soy el bot de la universidad. Usa /help para ver los comandos disponibles.`, env);
+  return await sendResponse(chatId, `Hola ${username}! Soy el bot de la universidad. Usa /help para ver los comandos disponibles.`);
 }
 
 // Manejador de comandos
-async function handleCommand(command, chatId, username, env) {
+async function handleCommand(command, chatId, username) {
   const parts = command.split(' ');
   const cmd = parts[0].toLowerCase();
   const args = parts.slice(1).join(' ');
@@ -75,7 +53,7 @@ async function handleCommand(command, chatId, username, env) {
         `/cursos - Ver cursos disponibles\n` +
         `/horario - Consultar horario\n` +
         `/info [curso] - Información de un curso\n` +
-        `/contacto - Información de contacto`, env);
+        `/contacto - Información de contacto`);
     
     case '/help':
       return await sendResponse(chatId,
@@ -86,7 +64,7 @@ async function handleCommand(command, chatId, username, env) {
         `/horario - Ver horario de clases\n` +
         `/info [nombre] - Info específica de un curso\n` +
         `/contacto - Información de contacto\n` +
-        `/noticias - Últimas noticias de la universidad`, env);
+        `/noticias - Últimas noticias de la universidad`);
     
     case '/cursos':
       const courses = [
@@ -99,7 +77,7 @@ async function handleCommand(command, chatId, username, env) {
       ];
       return await sendResponse(chatId, 
         `📚 Cursos Disponibles:\n\n${courses.join('\n')}\n\n` +
-        `Usa /info [nombre] para más información.`, env);
+        `Usa /info [nombre] para más información.`);
     
     case '/horario':
       return await sendResponse(chatId,
@@ -109,11 +87,11 @@ async function handleCommand(command, chatId, username, env) {
         `Miércoles: 9:00 - 13:00\n` +
         `Jueves: 11:00 - 16:00\n` +
         `Viernes: 9:00 - 12:00\n\n` +
-        `Para más detalles, consulta el portal del estudiante.`, env);
+        `Para más detalles, consulta el portal del estudiante.`);
     
     case '/info':
       if (!args) {
-        return await sendResponse(chatId, '❌ Por favor especifica el nombre del curso. Ejemplo: /info Programación Web', env);
+        return await sendResponse(chatId, '❌ Por favor especifica el nombre del curso. Ejemplo: /info Programación Web');
       }
       return await sendResponse(chatId,
         `📖 Información de: ${args}\n\n` +
@@ -121,7 +99,7 @@ async function handleCommand(command, chatId, username, env) {
         `Créditos: 4\n` +
         `Horario: Lunes y Miércoles 10:00 - 12:00\n` +
         `Salón: Aula 205\n` +
-        `Descripción: Curso introductorio sobre ${args.toLowerCase()}.`, env);
+        `Descripción: Curso introductorio sobre ${args.toLowerCase()}.`);
     
     case '/contacto':
       return await sendResponse(chatId,
@@ -130,7 +108,7 @@ async function handleCommand(command, chatId, username, env) {
         `📍 Calle Principal #123\n` +
         `📧 info@ceska.edu\n` +
         `📱 +1 234 567 890\n\n` +
-        `Horario de atención: Lunes a Viernes 8:00 - 18:00`, env);
+        `Horario de atención: Lunes a Viernes 8:00 - 18:00`);
     
     case '/noticias':
       return await sendResponse(chatId,
@@ -138,19 +116,20 @@ async function handleCommand(command, chatId, username, env) {
         `• Inscripciones abiertas para el próximo semestre\n` +
         `• Nuevo laboratorio de computación disponible\n` +
         `• Conferencia sobre IA el 15 de septiembre\n` +
-        `• Becas disponibles para estudiantes destacados`, env);
+        `• Becas disponibles para estudiantes destacados`);
     
     default:
-      return await sendResponse(chatId, '❌ Comando no reconocido. Usa /help para ver los comandos disponibles.', env);
+      return await sendResponse(chatId, '❌ Comando no reconocido. Usa /help para ver los comandos disponibles.');
   }
 }
 
-// Función para enviar respuestas (simulada para Cloudflare Workers)
-async function sendResponse(chatId, text, env) {
+// Función para enviar respuestas
+async function sendResponse(chatId, text) {
   // En un entorno real, aquí harías la llamada a la API del bot (Telegram, Discord, etc.)
   // Ejemplo para Telegram:
   /*
-  const response = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
+  const botToken = process.env.BOT_TOKEN;
+  const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -162,21 +141,12 @@ async function sendResponse(chatId, text, env) {
   
   console.log(`Message to ${chatId}: ${text}`);
   
-  return new Response(JSON.stringify({ 
-    success: true, 
-    chatId, 
-    message: text 
-  }), {
-    headers: { 'Content-Type': 'application/json' }
-  });
+  return { 
+    status: 200, 
+    data: { 
+      success: true, 
+      chatId, 
+      message: text 
+    } 
+  };
 }
-
-// Manejador 404
-router.all('*', () => new Response('Not Found', { status: 404 }));
-
-// Exportar para Cloudflare Workers
-export default {
-  async fetch(request, env, ctx) {
-    return router.handle(request, env, ctx);
-  }
-};

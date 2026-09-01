@@ -1,21 +1,20 @@
 # Ceska University Bot
 
-Bot de universidad desplegado en Cloudflare Workers con comandos para estudiantes.
+Bot de universidad desplegado en Render con comandos para estudiantes.
 
 ## 🚀 Características
 
 - Comandos interactivos para estudiantes
 - Información de cursos, horarios y noticias
 - Webhook ready para integración con Telegram, Discord, etc.
-- Despliegue automático con GitHub Actions
-- Almacenamiento en Cloudflare KV/D1 (opcional)
+- Despliegue sencillo en Render
+- Servidor Express con Node.js
 
 ## 📋 Requisitos previos
 
 - Node.js 20+
-- Cuenta de Cloudflare (gratis)
+- Cuenta de Render (gratis)
 - Cuenta de GitHub
-- Wrangler CLI
 
 ## 🔧 Instalación local
 
@@ -26,53 +25,16 @@ cd ceska-university-bot
 
 # Instalar dependencias
 npm install
+
+# Ejecutar localmente
+npm start
 ```
 
-## ⚙️ Configuración de Cloudflare
+El bot estará disponible en `http://localhost:3000`
 
-### 1. Instalar Wrangler CLI
+## 📤 Despliegue en Render
 
-```bash
-npm install -g wrangler
-```
-
-### 2. Autenticarse en Cloudflare
-
-```bash
-wrangler login
-```
-
-Esto abrirá tu navegador para autenticarte con Cloudflare.
-
-### 3. Configurar secrets
-
-```bash
-# Configurar el token del bot (ejemplo para Telegram)
-wrangler secret put BOT_TOKEN
-
-# Configurar el webhook secret (opcional)
-wrangler secret put WEBHOOK_SECRET
-```
-
-### 4. Probar localmente
-
-```bash
-npm run dev
-```
-
-El bot estará disponible en `http://localhost:8787`
-
-## 📤 Despliegue a Cloudflare Workers
-
-### Despliegue manual
-
-```bash
-npm run deploy
-```
-
-### Despliegue automático con GitHub Actions
-
-#### Paso 1: Crear repositorio en GitHub
+### Paso 1: Crear repositorio en GitHub
 
 ```bash
 # Inicializar git
@@ -88,26 +50,34 @@ git branch -M main
 git push -u origin main
 ```
 
-#### Paso 2: Configurar secrets en GitHub
+### Paso 2: Crear Web Service en Render
 
-Ve a tu repositorio en GitHub:
-1. Settings → Secrets and variables → Actions
-2. Agrega los siguientes secrets:
+1. Ve a [render.com](https://render.com) e inicia sesión
+2. Crea un nuevo Web Service
+3. Conecta tu repositorio de GitHub
+4. Configura los siguientes parámetros:
 
-- **CLOUDFLARE_API_TOKEN**: 
-  - Ve a [Cloudflare Dashboard](https://dash.cloudflare.com/)
-  - My Profile → API Tokens → Create Token
-  - Selecciona "Edit Cloudflare Workers" template
-  - Copia el token generado
+**Build Command:**
+```bash
+npm install
+```
 
-- **CLOUDFLARE_ACCOUNT_ID**:
-  - Ve a [Cloudflare Dashboard](https://dash.cloudflare.com/)
-  - Workers & Pages → Overview
-  - Copia el Account ID (derecha de la pantalla)
+**Start Command:**
+```bash
+node src/server.js
+```
 
-#### Paso 3: Activar GitHub Actions
+### Paso 3: Configurar variables de entorno
 
-El workflow `.github/workflows/deploy.yml` se ejecutará automáticamente cuando hagas push a la rama `main`.
+En Render, agrega las siguientes variables de entorno:
+
+- `BOT_TOKEN`: Token de tu bot (ejemplo para Telegram)
+- `NODE_ENV`: `production`
+- `PORT`: `3000` (Render asigna automáticamente)
+
+### Paso 4: Despliegue automático
+
+Render desplegará automáticamente cada vez que hagas push a GitHub.
 
 ## 🤖 Comandos del Bot
 
@@ -125,15 +95,11 @@ Para conectar con Telegram:
 
 1. Crea un bot con [@BotFather](https://t.me/botfather) en Telegram
 2. Copia el token del bot
-3. Configura el secret en Cloudflare:
-```bash
-wrangler secret put BOT_TOKEN
-```
+3. Agrega `BOT_TOKEN` como variable de entorno en Render
 4. Configura el webhook:
 ```bash
-curl -F "url=https://tu-worker.workers.dev" https://api.telegram.org/bot<TU_TOKEN>/setWebhook
+curl -F "url=https://tu-app.onrender.com/" https://api.telegram.org/bot<TU_TOKEN>/setWebhook
 ```
-
 5. Descomenta la sección de API de Telegram en `src/index.js`
 
 ## 📁 Estructura del proyecto
@@ -141,23 +107,20 @@ curl -F "url=https://tu-worker.workers.dev" https://api.telegram.org/bot<TU_TOKE
 ```
 .
 ├── src/
-│   └── index.js           # Lógica principal del bot
-├── .github/
-│   └── workflows/
-│       └── deploy.yml     # Workflow de CI/CD
+│   ├── index.js           # Lógica principal del bot
+│   └── server.js          # Servidor Express
 ├── .gitignore             # Archivos ignorados
 ├── .env.example           # Plantilla de variables
 ├── package.json           # Dependencias
-├── wrangler.toml          # Configuración Cloudflare
 └── README.md              # Este archivo
 ```
 
 ## 🛠️ Comandos disponibles
 
 ```bash
-npm run dev      # Desarrollo local
-npm run deploy   # Despliegue a Cloudflare
-npm run format   # Formatear código
+npm install  # Instalar dependencias
+npm start    # Iniciar servidor
+npm run dev  # Desarrollo local
 ```
 
 ## 📝 Personalización
@@ -171,15 +134,13 @@ Edita `src/index.js` para:
 ## 🔒 Seguridad
 
 - Nunca commits secrets en el código
-- Usa Cloudflare Secrets para datos sensibles
-- Usa GitHub Secrets para tokens de CI/CD
-- El archivo `.dev.vars` está en `.gitignore`
+- Usa variables de entorno de Render para datos sensibles
+- El archivo `.env` está en `.gitignore`
 
 ## 📚 Recursos
 
-- [Cloudflare Workers Docs](https://developers.cloudflare.com/workers/)
-- [Wrangler CLI Docs](https://developers.cloudflare.com/workers/wrangler/)
-- [itty-router Docs](https://itty-router.dev/)
+- [Render Docs](https://render.com/docs)
+- [Express Docs](https://expressjs.com/)
 - [Telegram Bot API](https://core.telegram.org/bots/api)
 
 ## 📄 Licencia
