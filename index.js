@@ -133,6 +133,8 @@ async function sendResponse(chatId, text) {
   }
 
   try {
+    console.log(`Sending to Telegram API - Chat ID: ${chatId}, Token: ${botToken.substring(0, 10)}...`);
+    
     const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -143,13 +145,14 @@ async function sendResponse(chatId, text) {
     });
 
     const result = await response.json();
+    console.log(`Telegram API response:`, JSON.stringify(result));
     
     if (!response.ok) {
       console.error('Error sending message to Telegram:', result);
       return { status: 500, data: { error: result.description } };
     }
 
-    console.log(`Message sent to ${chatId}: ${text}`);
+    console.log(`✅ Message sent successfully to ${chatId}`);
     
     return { 
       status: 200, 
@@ -160,7 +163,7 @@ async function sendResponse(chatId, text) {
       } 
     };
   } catch (error) {
-    console.error('Error sending message:', error);
+    console.error('❌ Error sending message:', error);
     return { status: 500, data: { error: error.message } };
   }
 }
