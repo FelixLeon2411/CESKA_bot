@@ -62,6 +62,8 @@ async function handleCommand(command, chatId, username){
                 'Opciones disponibles \n' +
                 '/help - Mostrar ayuda \n' +
                 '/Licenciaturas \n' +
+                '/noticias \n' +
+                '/avisos - Avisos importantes \n' +
                 '/contacto \n');
 
         case '/help':
@@ -70,24 +72,38 @@ async function handleCommand(command, chatId, username){
             '/start - iniciar el bot \n' +
             '/help - Mostrar esta ayuda \n' +
             '/licenciaturas - Muestra las licenciaturas ofertadas\n'+
-            '/noticias - Muestra eventos o informes de interes\n' + 
+            '/noticias - Muestra eventos o informes de interes\n' +
+            '/avisos - Avisos importantes\n' +
             '/contacto - informacion de contacto \n');
         
 
 
         case '/licenciaturas':
-            const degreeList = degrees.map(d =>`${d.name} (${d.id})`).join('\n');
+            const degreeList = degrees.map(d => {
+                const duration = d.id === 'psicologia' ? '4 años' : '3 años';
+                return `${d.name} (${d.id}) - Duración: ${duration}`;
+            }).join('\n');
                 return await sendResponse (chatId, 'Licenciaturas Disponibles :\n\n'+degreeList);
 
        case '/noticias':
             return await sendResponse (chatId,
-            'Ultinas noticias\n\n'+
-            'Conferencias sobre IA');
+            'Ultinas noticias\n\n');
 
+        case '/avisos':
+            return await sendResponse (chatId,
+            'Avisos Importantes\n\n' +
+            '• 30 de octubre: Plática de protección civil para estudiantes\n' +
+            '• 31 de octubre: Suspensión de clases\n' +
+            '• 7 de noviembre: Plática de protección civil para estudiantes\n');
         case '/contacto':
             return await sendResponse  (chatId,
-            'Informacion del contacto\n\n' +
-            'Ubicacion\n');
+            'Informacion de contacto\n\n' +
+            'Dirección:\n' +
+            'Carretera Puerto Angel Km. 13.5\n' +
+            'San Bartolo Coyotepec\n\n' +
+            'Teléfono: 951269047\n\n' +
+            'Horario de atención:\n' +
+            'Lunes a Viernes 9:00 - 18:00');
         
         
         default:
